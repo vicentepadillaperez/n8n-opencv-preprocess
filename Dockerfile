@@ -1,8 +1,10 @@
+# Imagen base liviana con Python 3.10
 FROM python:3.10-slim
 
+# Directorio principal
 WORKDIR /app
 
-# Dependencias necesarias para OpenCV (imprescindibles en Railway)
+# Dependencias necesarias para OpenCV
 RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
@@ -11,15 +13,17 @@ RUN apt-get update && apt-get install -y \
     libxrender1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar dependencias Python
+# Copiar archivo de dependencias
 COPY requirements.txt .
+
+# Instalar dependencias Python sin caché
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar la aplicación
+# Copiar todo el resto de archivos
 COPY . .
 
-# Railway detecta el puerto 8080 automáticamente
+# Railway definirá automáticamente $PORT
 EXPOSE 8080
 
-# Ejecutar la app en 0.0.0.0:8080 (NECESARIO)
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+# Iniciar FastAPI usando el puerto de Railway
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT}"]
